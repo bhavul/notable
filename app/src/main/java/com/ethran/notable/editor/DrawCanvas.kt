@@ -41,6 +41,7 @@ import com.ethran.notable.editor.utils.handleDraw
 import com.ethran.notable.editor.utils.handleErase
 import com.ethran.notable.editor.utils.handleScribbleToErase
 import com.ethran.notable.editor.utils.handleSelect
+import com.ethran.notable.editor.utils.handleSmartLasso
 import com.ethran.notable.editor.utils.onSurfaceChanged
 import com.ethran.notable.editor.utils.onSurfaceDestroy
 import com.ethran.notable.editor.utils.onSurfaceInit
@@ -314,16 +315,31 @@ class DrawCanvas(
                                 firstPointTime
                             )
                             if (erasedByScribbleDirtyRect.isNullOrEmpty()) {
-                                log.d("Drawing...")
-                                // draw the stroke
-                                handleDraw(
-                                    this@DrawCanvas.page,
-                                    strokeHistoryBatch,
+                                // Try Smart Lasso selection if scribble-to-erase didn't trigger
+                                val handledBySmartLasso = handleSmartLasso(
+                                    coroutineScope,
+                                    page,
+                                    getActualState(),
+                                    scaledPoints,
                                     getActualState().penSettings[getActualState().pen.penName]!!.strokeSize,
                                     getActualState().penSettings[getActualState().pen.penName]!!.color,
-                                    getActualState().pen,
-                                    scaledPoints
+                                    getActualState().pen
                                 )
+
+                                if (!handledBySmartLasso) {
+                                    log.d("Drawing...")
+                                    // draw the stroke normally
+                                    handleDraw(
+                                        this@DrawCanvas.page,
+                                        strokeHistoryBatch,
+                                        getActualState().penSettings[getActualState().pen.penName]!!.strokeSize,
+                                        getActualState().penSettings[getActualState().pen.penName]!!.color,
+                                        getActualState().pen,
+                                        scaledPoints
+                                    )
+                                } else {
+                                    log.d("Handled by Smart Lasso selection")
+                                }
                             } else {
                                 log.d("Erased by scribble, $erasedByScribbleDirtyRect")
                                 drawCanvasToView(erasedByScribbleDirtyRect)

@@ -32,8 +32,10 @@ import com.ethran.notable.data.datastore.BUTTON_SIZE
 import com.ethran.notable.editor.EditorControlTower
 import com.ethran.notable.editor.state.EditorState
 import com.ethran.notable.editor.ui.toolbar.ToolbarButton
+import com.ethran.notable.editor.utils.handleDraw
 import com.ethran.notable.io.shareBitmap
 import com.ethran.notable.ui.noRippleClickable
+import io.shipbook.shipbooksdk.Log
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Clipboard
 import compose.icons.feathericons.Copy
@@ -68,6 +70,27 @@ fun SelectedBitmap(
         Modifier
             .fillMaxSize()
             .noRippleClickable {
+                // If there's a pending lasso stroke, draw it before resetting
+                val pendingLasso = selectionState.pendingLassoStroke
+                if (pendingLasso != null) {
+                    val strokeSize = selectionState.pendingLassoStrokeSize
+                    val color = selectionState.pendingLassoColor
+                    val pen = selectionState.pendingLassoPen
+
+                    if (strokeSize != null && color != null && pen != null) {
+                        Log.d("SmartLasso", "Drawing cancelled lasso stroke with ${pendingLasso.size} points")
+                        // Draw the lasso stroke that was temporarily held
+                        handleDraw(
+                            editorState.pageView,
+                            mutableListOf(), // empty history batch since this is being drawn separately
+                            strokeSize,
+                            color,
+                            pen,
+                            pendingLasso
+                        )
+                    }
+                }
+
                 controlTower.applySelectionDisplace()
                 selectionState.reset()
                 editorState.isDrawing = true

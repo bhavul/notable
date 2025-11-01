@@ -14,8 +14,10 @@ import androidx.core.graphics.createBitmap
 import com.ethran.notable.TAG
 import com.ethran.notable.data.db.Image
 import com.ethran.notable.data.db.Stroke
+import com.ethran.notable.data.db.StrokePoint
 import com.ethran.notable.data.model.SimplePointF
 import com.ethran.notable.editor.PageView
+import com.ethran.notable.editor.utils.Pen
 import com.ethran.notable.editor.drawing.drawImage
 import com.ethran.notable.editor.utils.imageBoundsInt
 import com.ethran.notable.editor.utils.offsetImage
@@ -43,6 +45,12 @@ class SelectionState {
     var selectionRect by mutableStateOf<Rect?>(null)
     var placementMode by mutableStateOf<PlacementMode?>(null)
 
+    // Smart Lasso: store the lasso stroke for potential later drawing if selection is cancelled
+    var pendingLassoStroke by mutableStateOf<List<StrokePoint>?>(null)
+    var pendingLassoStrokeSize by mutableStateOf<Float?>(null)
+    var pendingLassoColor by mutableStateOf<Int?>(null)
+    var pendingLassoPen by mutableStateOf<Pen?>(null)
+
     fun reset() {
         selectedStrokes = null
         selectedImages = null
@@ -53,6 +61,10 @@ class SelectionState {
         selectionStartOffset = null
         selectionDisplaceOffset = null
         placementMode = null
+        pendingLassoStroke = null
+        pendingLassoStrokeSize = null
+        pendingLassoColor = null
+        pendingLassoPen = null
         setAnimationMode(false)
     }
 
